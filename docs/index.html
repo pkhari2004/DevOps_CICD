@@ -1,133 +1,665 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>My Food Blog</title>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Karma">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calc & Play</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-body,h1,h2,h3,h4,h5,h6 {font-family: "Karma", sans-serif}
-.w3-bar-block .w3-bar-item {padding:20px}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e12;
+    --surface: #18181f;
+    --surface2: #222230;
+    --surface3: #2c2c3e;
+    --accent: #c8f060;
+    --accent2: #7c6fff;
+    --text: #f0eefc;
+    --text-muted: #7a7a9a;
+    --border: rgba(255,255,255,0.07);
+    --radius: 20px;
+    --radius-sm: 12px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+    background-image: radial-gradient(ellipse at 20% 20%, rgba(124,111,255,0.08) 0%, transparent 60%),
+                      radial-gradient(ellipse at 80% 80%, rgba(200,240,96,0.06) 0%, transparent 60%);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    animation: fadeDown 0.5s ease;
+  }
+
+  header h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  header h1 span { color: var(--accent); }
+  header p { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+
+  .layout {
+    display: flex;
+    gap: 2rem;
+    width: 100%;
+    max-width: 820px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* ── CALCULATOR ── */
+  .calculator {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    width: 320px;
+    flex-shrink: 0;
+    animation: fadeUp 0.5s ease 0.1s both;
+  }
+
+  .calc-display {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1.2rem;
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    border: 1px solid var(--border);
+  }
+
+  .calc-expression {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    min-height: 18px;
+    word-break: break-all;
+  }
+
+  .calc-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+    word-break: break-all;
+    transition: color 0.15s;
+  }
+
+  .calc-value.updated { color: var(--accent); }
+
+  .calc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .btn {
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    height: 58px;
+    transition: transform 0.08s, background 0.1s, box-shadow 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn:active { transform: scale(0.93); }
+
+  .btn-num {
+    background: var(--surface2);
+    color: var(--text);
+  }
+  .btn-num:hover { background: var(--surface3); }
+
+  .btn-op {
+    background: var(--surface3);
+    color: var(--accent2);
+  }
+  .btn-op:hover { background: #35354a; }
+
+  .btn-special {
+    background: var(--surface3);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+  .btn-special:hover { background: #35354a; }
+
+  .btn-equals {
+    background: var(--accent);
+    color: #0e0e12;
+  }
+  .btn-equals:hover { background: #d6f470; box-shadow: 0 0 20px rgba(200,240,96,0.3); }
+
+  .btn-clear {
+    background: rgba(255,80,80,0.15);
+    color: #ff6b6b;
+  }
+  .btn-clear:hover { background: rgba(255,80,80,0.25); }
+
+  .btn-zero { grid-column: span 2; }
+
+  /* ripple */
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    width: 60px; height: 60px;
+    background: rgba(255,255,255,0.15);
+    transform: scale(0);
+    animation: ripple 0.4s ease-out;
+    pointer-events: none;
+  }
+  @keyframes ripple { to { transform: scale(4); opacity: 0; } }
+
+  /* ── TIC TAC TOE ── */
+  .tictactoe {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    width: 320px;
+    flex-shrink: 0;
+    animation: fadeUp 0.5s ease 0.2s both;
+  }
+
+  .ttt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.2rem;
+  }
+
+  .ttt-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .ttt-scores {
+    display: flex;
+    gap: 8px;
+  }
+
+  .score-pill {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .score-pill .player-label { color: var(--text-muted); }
+  .score-pill .player-x { color: var(--accent2); }
+  .score-pill .player-o { color: var(--accent); }
+  .score-pill .score-val { color: var(--text); font-weight: 700; }
+
+  .ttt-status {
+    text-align: center;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    min-height: 24px;
+    font-weight: 500;
+  }
+
+  .ttt-status .highlight-x { color: var(--accent2); font-weight: 700; }
+  .ttt-status .highlight-o { color: var(--accent); font-weight: 700; }
+  .ttt-status .highlight-win { color: var(--accent); font-family: 'Space Mono', monospace; }
+
+  .ttt-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .ttt-cell {
+    aspect-ratio: 1;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.1s, transform 0.08s, border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ttt-cell:hover:not(.taken) { background: var(--surface3); transform: scale(1.03); }
+  .ttt-cell.taken { cursor: default; }
+  .ttt-cell.x-cell { color: var(--accent2); border-color: rgba(124,111,255,0.3); }
+  .ttt-cell.o-cell { color: var(--accent); border-color: rgba(200,240,96,0.3); }
+  .ttt-cell.win-cell { background: var(--surface3); animation: winPulse 0.5s ease; }
+  .ttt-cell.x-cell.win-cell { border-color: var(--accent2); background: rgba(124,111,255,0.15); }
+  .ttt-cell.o-cell.win-cell { border-color: var(--accent); background: rgba(200,240,96,0.1); }
+
+  @keyframes winPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+
+  .ttt-cell .mark {
+    display: inline-block;
+    animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes popIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .ttt-footer {
+    display: flex;
+    gap: 8px;
+  }
+
+  .ttt-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.1s;
+  }
+
+  .ttt-btn-reset {
+    background: var(--surface2);
+    color: var(--text-muted);
+  }
+  .ttt-btn-reset:hover { background: var(--surface3); color: var(--text); }
+
+  .ttt-btn-new {
+    background: rgba(124,111,255,0.2);
+    color: var(--accent2);
+  }
+  .ttt-btn-new:hover { background: rgba(124,111,255,0.3); }
+
+  /* mode toggle */
+  .mode-toggle {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1rem;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 4px;
+  }
+
+  .mode-btn {
+    flex: 1;
+    padding: 6px;
+    border: none;
+    border-radius: 7px;
+    font-size: 0.75rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .mode-btn.active {
+    background: var(--surface3);
+    color: var(--text);
+  }
+
+  /* animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 680px) {
+    .layout { gap: 1.2rem; }
+    .calculator, .tictactoe { width: min(320px, 100%); }
+  }
 </style>
 </head>
 <body>
 
-<!-- Sidebar (hidden by default) -->
-<nav class="w3-sidebar w3-bar-block w3-card w3-top w3-xlarge w3-animate-left" style="display:none;z-index:2;width:40%;min-width:300px" id="mySidebar">
-  <a href="javascript:void(0)" onclick="w3_close()"
-  class="w3-bar-item w3-button">Close Menu</a>
-  <a href="#food" onclick="w3_close()" class="w3-bar-item w3-button">Food</a>
-  <a href="#about" onclick="w3_close()" class="w3-bar-item w3-button">About</a>
-</nav>
+<header>
+  <h1>Calc<span>&</span>Play</h1>
+  <p>Calculator · Tic Tac Toe</p>
+</header>
 
-<!-- Top menu -->
-<div class="w3-top">
-  <div class="w3-white w3-xlarge" style="max-width:1200px;margin:auto">
-    <div class="w3-button w3-padding-16 w3-left" onclick="w3_open()">☰</div>
-    <div class="w3-right w3-padding-16">Mail</div>
-    <div class="w3-center w3-padding-16">My Food</div>
-  </div>
-</div>
-  
-<!-- !PAGE CONTENT! -->
-<div class="w3-main w3-content w3-padding" style="max-width:1200px;margin-top:100px">
+<div class="layout">
 
-  <!-- First Photo Grid-->
-  <div class="w3-row-padding w3-padding-16 w3-center" id="food">
-    <div class="w3-quarter">
-      <img src="https://vaya.in/recipes/wp-content/uploads/2018/06/Club-sandwich.jpg" alt="Sandwich" style="width:100%">
-      <h3>The Perfect Sandwich, A Real NYC Classic</h3>
+  <!-- CALCULATOR -->
+  <div class="calculator">
+    <div class="calc-display">
+      <div class="calc-expression" id="expression"></div>
+      <div class="calc-value" id="display">0</div>
     </div>
-    <div class="w3-quarter">
-      <img src="https://arc-anglerfish-washpost-prod-washpost.s3.amazonaws.com/public/53BGPNAB6YI63C7LFNHEQGYVAA.jpg" alt="Steak" style="width:100%">
-      <h3>Let Me Tell You About This Steak</h3>
-    </div>
-    <div class="w3-quarter">
-      <img src="https://blog.lexmed.com/images/librariesprovider80/blog-post-featured-images/shutterstock_1933299218.jpg?sfvrsn=4a8d900b_0" alt="Cherries" style="width:100%">
-      <h3>Cherries, interrupted</h3>
-      <p>What else?</p>
-    </div>
-    <div class="w3-quarter">
-      <img src="https://www.acouplecooks.com/wp-content/uploads/2023/01/Red-Sauce-Pasta-008.jpg" alt="Pasta and Wine" style="width:100%">
-      <h3>Once Again, Robust Wine and Vegetable Pasta</h3>
-    </div>
-  </div>
-  
-  <!-- Second Photo Grid-->
-  <div class="w3-row-padding w3-padding-16 w3-center">
-    <div class="w3-quarter">
-      <img src="https://feelgoodfoodie.net/wp-content/uploads/2022/04/How-to-Make-Popsicles-15.jpg" alt="Popsicle" style="width:100%">
-      <h3>All I Need Is a Popsicle</h3>
-    </div>
-    <div class="w3-quarter">
-      <img src="https://www.wholesomeyum.com/wp-content/uploads/2021/07/wholesomeyum-Pan-Seared-Salmon-12.jpg" alt="Salmon" style="width:100%">
-      <h3>Salmon For Your Skin</h3>
-    </div>
-    <div class="w3-quarter">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Desserts.jpg/640px-Desserts.jpg" alt="Sandwich" style="width:100%">
-      <h3>The Perfect Dessert</h3>
-    </div>
-    <div class="w3-quarter">
-      <img src="https://www.simplejoy.com/wp-content/uploads/2021/04/Croissant-French-Toast-5.jpg" alt="Croissant" style="width:100%">
-      <h3>Le French</h3>
+    <div class="calc-grid">
+      <button class="btn btn-special btn-clear" onclick="calcClear()">AC</button>
+      <button class="btn btn-special" onclick="calcToggleSign()">+/−</button>
+      <button class="btn btn-special" onclick="calcPercent()">%</button>
+      <button class="btn btn-op" onclick="calcOp('÷')">÷</button>
+
+      <button class="btn btn-num" onclick="calcNum('7')">7</button>
+      <button class="btn btn-num" onclick="calcNum('8')">8</button>
+      <button class="btn btn-num" onclick="calcNum('9')">9</button>
+      <button class="btn btn-op" onclick="calcOp('×')">×</button>
+
+      <button class="btn btn-num" onclick="calcNum('4')">4</button>
+      <button class="btn btn-num" onclick="calcNum('5')">5</button>
+      <button class="btn btn-num" onclick="calcNum('6')">6</button>
+      <button class="btn btn-op" onclick="calcOp('−')">−</button>
+
+      <button class="btn btn-num" onclick="calcNum('1')">1</button>
+      <button class="btn btn-num" onclick="calcNum('2')">2</button>
+      <button class="btn btn-num" onclick="calcNum('3')">3</button>
+      <button class="btn btn-op" onclick="calcOp('+')">+</button>
+
+      <button class="btn btn-num btn-zero" onclick="calcNum('0')">0</button>
+      <button class="btn btn-num" onclick="calcDot()">.</button>
+      <button class="btn btn-equals" onclick="calcEquals()">=</button>
     </div>
   </div>
 
-  <!-- Pagination -->
-  <div class="w3-center w3-padding-32">
-    <div class="w3-bar">
-      <a href="#" class="w3-bar-item w3-button w3-hover-black">«</a>
-      <a href="#" class="w3-bar-item w3-black w3-button">1</a>
-      <a href="#" class="w3-bar-item w3-button w3-hover-black">2</a>
-      <a href="#" class="w3-bar-item w3-button w3-hover-black">3</a>
-      <a href="#" class="w3-bar-item w3-button w3-hover-black">4</a>
-      <a href="#" class="w3-bar-item w3-button w3-hover-black">»</a>
+  <!-- TIC TAC TOE -->
+  <div class="tictactoe">
+    <div class="ttt-header">
+      <span class="ttt-title">Tic Tac Toe</span>
+      <div class="ttt-scores">
+        <div class="score-pill">
+          <span class="player-label player-x">X</span>
+          <span class="score-val" id="scoreX">0</span>
+        </div>
+        <div class="score-pill">
+          <span class="player-label" style="color:var(--text-muted)">D</span>
+          <span class="score-val" id="scoreD">0</span>
+        </div>
+        <div class="score-pill">
+          <span class="player-label player-o">O</span>
+          <span class="score-val" id="scoreO">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="mode2p" onclick="setMode('2p')">2 Players</button>
+      <button class="mode-btn" id="modeAI" onclick="setMode('ai')">vs AI</button>
+    </div>
+
+    <div class="ttt-status" id="tttStatus">
+      <span class="highlight-x">X</span>'s turn
+    </div>
+
+    <div class="ttt-board" id="tttBoard"></div>
+
+    <div class="ttt-footer">
+      <button class="ttt-btn ttt-btn-reset" onclick="tttReset()">New Round</button>
+      <button class="ttt-btn ttt-btn-new" onclick="tttNewGame()">Reset Scores</button>
     </div>
   </div>
-  
-  <hr id="about">
 
-  <!-- About Section -->
-  <div class="w3-container w3-padding-32 w3-center">  
-    <h3>About Me, The Food Man</h3><br>
-    <img src="https://www.cordonbleu.edu/Files/MediaFile/58300.jpg" alt="Me" class="w3-image" style="display:block;margin:auto" width="800" height="533">
-    <div class="w3-padding-32">
-      <h4><b>I am Who I Am!</b></h4>
-      <h6><i>With Passion For Real, Good Food</i></h6>
-      <p>Just me, myself and I, exploring the universe of unknownment. I have a heart of love and an interest on food blog. I want to share my world with you.</p>
-    </div>
-  </div>
-  <hr>
-  
-  <!-- Footer -->
-  <footer class="w3-row-padding w3-padding-32">
-
-    <div class="w3-third w3-serif">
-      <h3>POPULAR TAGS</h3>
-      <p>
-        <span class="w3-tag w3-black w3-margin-bottom">Travel</span> <span class="w3-tag w3-dark-grey w3-small w3-margin-bottom">New York</span> <span class="w3-tag w3-dark-grey w3-small w3-margin-bottom">Dinner</span>
-        <span class="w3-tag w3-dark-grey w3-small w3-margin-bottom">Salmon</span> <span class="w3-tag w3-dark-grey w3-small w3-margin-bottom">France</span> <span class="w3-tag w3-dark-grey w3-small w3-margin-bottom">Drinks</span>
-        <span class="w3-tag w3-dark-grey w3-small w3-margin-bottom">Ideas</span> <span class="w3-tag w3-dark-grey w3-small w3-margin-bottom">Flavors</span> <span class="w3-tag w3-dark-grey w3-small w3-margin-bottom">Cuisine</span>
-        <span class="w3-tag w3-dark-grey w3-small w3-margin-bottom">Chicken</span> <span class="w3-tag w3-dark-grey w3-small w3-margin-bottom">Dressing</span> <span class="w3-tag w3-dark-grey w3-small w3-margin-bottom">Fried</span>
-        <span class="w3-tag w3-dark-grey w3-small w3-margin-bottom">Fish</span> <span class="w3-tag w3-dark-grey w3-small w3-margin-bottom">Duck</span>
-      </p>
-    </div>
-  </footer>
-
-<!-- End page content -->
 </div>
 
 <script>
-// Script to open and close sidebar
-function w3_open() {
-  document.getElementById("mySidebar").style.display = "block";
-}
- 
-function w3_close() {
-  document.getElementById("mySidebar").style.display = "none";
-}
-</script>
+// ── CALCULATOR ──
+let calcState = { display: '0', expression: '', operand: null, operator: null, justEquals: false };
 
+function updateDisplay(val, flash) {
+  const el = document.getElementById('display');
+  el.textContent = val;
+  if (flash) {
+    el.classList.add('updated');
+    setTimeout(() => el.classList.remove('updated'), 300);
+  }
+  document.getElementById('expression').textContent = calcState.expression;
+}
+
+function calcNum(n) {
+  if (calcState.justEquals) { calcState.display = n; calcState.justEquals = false; }
+  else if (calcState.display === '0' && n !== '.') calcState.display = n;
+  else if (calcState.display.length < 12) calcState.display += n;
+  updateDisplay(calcState.display);
+}
+
+function calcDot() {
+  if (calcState.justEquals) { calcState.display = '0.'; calcState.justEquals = false; }
+  else if (!calcState.display.includes('.')) calcState.display += '.';
+  updateDisplay(calcState.display);
+}
+
+function calcOp(op) {
+  calcState.justEquals = false;
+  if (calcState.operator && calcState.operand !== null) {
+    const res = compute(calcState.operand, parseFloat(calcState.display), calcState.operator);
+    calcState.operand = res;
+    calcState.display = formatNum(res);
+  } else {
+    calcState.operand = parseFloat(calcState.display);
+  }
+  calcState.operator = op;
+  calcState.expression = formatNum(calcState.operand) + ' ' + op;
+  updateDisplay(calcState.display);
+}
+
+function calcEquals() {
+  if (calcState.operator === null || calcState.operand === null) return;
+  const b = parseFloat(calcState.display);
+  calcState.expression = formatNum(calcState.operand) + ' ' + calcState.operator + ' ' + formatNum(b) + ' =';
+  const res = compute(calcState.operand, b, calcState.operator);
+  calcState.display = formatNum(res);
+  calcState.operand = null;
+  calcState.operator = null;
+  calcState.justEquals = true;
+  updateDisplay(calcState.display, true);
+}
+
+function compute(a, b, op) {
+  if (op === '+') return a + b;
+  if (op === '−') return a - b;
+  if (op === '×') return a * b;
+  if (op === '÷') return b === 0 ? 0 : a / b;
+  return b;
+}
+
+function formatNum(n) {
+  if (!isFinite(n)) return 'Error';
+  const s = parseFloat(n.toPrecision(10)).toString();
+  return s.length > 12 ? parseFloat(n.toFixed(6)).toString() : s;
+}
+
+function calcClear() {
+  calcState = { display: '0', expression: '', operand: null, operator: null, justEquals: false };
+  updateDisplay('0');
+}
+
+function calcToggleSign() {
+  if (calcState.display !== '0') {
+    calcState.display = calcState.display.startsWith('-')
+      ? calcState.display.slice(1)
+      : '-' + calcState.display;
+    updateDisplay(calcState.display);
+  }
+}
+
+function calcPercent() {
+  calcState.display = formatNum(parseFloat(calcState.display) / 100);
+  calcState.justEquals = false;
+  updateDisplay(calcState.display);
+}
+
+// Ripple effect
+document.querySelectorAll('.btn').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    const r = document.createElement('span');
+    r.className = 'ripple';
+    const rect = this.getBoundingClientRect();
+    r.style.left = (e.clientX - rect.left - 30) + 'px';
+    r.style.top = (e.clientY - rect.top - 30) + 'px';
+    this.appendChild(r);
+    setTimeout(() => r.remove(), 400);
+  });
+});
+
+// Keyboard support
+document.addEventListener('keydown', e => {
+  if ('0123456789'.includes(e.key)) calcNum(e.key);
+  else if (e.key === '.') calcDot();
+  else if (e.key === '+') calcOp('+');
+  else if (e.key === '-') calcOp('−');
+  else if (e.key === '*') calcOp('×');
+  else if (e.key === '/') { e.preventDefault(); calcOp('÷'); }
+  else if (e.key === 'Enter' || e.key === '=') calcEquals();
+  else if (e.key === 'Escape') calcClear();
+  else if (e.key === 'Backspace') {
+    if (calcState.display.length > 1) calcState.display = calcState.display.slice(0,-1);
+    else calcState.display = '0';
+    updateDisplay(calcState.display);
+  }
+});
+
+// ── TIC TAC TOE ──
+let board = Array(9).fill(null);
+let currentPlayer = 'X';
+let gameOver = false;
+let scores = { X: 0, O: 0, D: 0 };
+let mode = '2p'; // '2p' or 'ai'
+
+const WINS = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('mode2p').classList.toggle('active', m === '2p');
+  document.getElementById('modeAI').classList.toggle('active', m === 'ai');
+  tttReset();
+}
+
+function renderBoard() {
+  const boardEl = document.getElementById('tttBoard');
+  boardEl.innerHTML = '';
+  board.forEach((cell, i) => {
+    const div = document.createElement('div');
+    div.className = 'ttt-cell' + (cell ? ' taken' : '') + (cell === 'X' ? ' x-cell' : cell === 'O' ? ' o-cell' : '');
+    if (cell) div.innerHTML = `<span class="mark">${cell}</span>`;
+    if (!cell && !gameOver) div.addEventListener('click', () => makeMove(i));
+    boardEl.appendChild(div);
+  });
+}
+
+function makeMove(i) {
+  if (board[i] || gameOver) return;
+  board[i] = currentPlayer;
+  renderBoard();
+  const win = checkWin();
+  if (win) {
+    highlightWin(win);
+    scores[currentPlayer]++;
+    updateScores();
+    setStatus(`<span class="highlight-win">${currentPlayer} wins! 🎉</span>`);
+    gameOver = true;
+  } else if (board.every(c => c)) {
+    setStatus('Draw!');
+    scores.D++;
+    updateScores();
+    gameOver = true;
+  } else {
+    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    setStatus(`<span class="highlight-${currentPlayer.toLowerCase()}">${currentPlayer}</span>'s turn`);
+    if (mode === 'ai' && currentPlayer === 'O' && !gameOver) {
+      setTimeout(aiMove, 350);
+    }
+  }
+}
+
+function aiMove() {
+  const best = minimax(board, 'O');
+  if (best.index !== undefined) makeMove(best.index);
+}
+
+function minimax(b, player) {
+  const avail = b.map((v,i) => v ? null : i).filter(v => v !== null);
+  const win = checkWinFor(b, 'O');
+  if (win) return { score: 10 };
+  if (checkWinFor(b, 'X')) return { score: -10 };
+  if (avail.length === 0) return { score: 0 };
+  const moves = avail.map(i => {
+    const nb = [...b]; nb[i] = player;
+    const res = minimax(nb, player === 'O' ? 'X' : 'O');
+    return { index: i, score: res.score };
+  });
+  return player === 'O'
+    ? moves.reduce((a,b) => b.score > a.score ? b : a)
+    : moves.reduce((a,b) => b.score < a.score ? b : a);
+}
+
+function checkWin() {
+  return WINS.find(([a,b,c]) => board[a] && board[a] === board[b] && board[b] === board[c]) || null;
+}
+
+function checkWinFor(b, p) {
+  return WINS.some(([a,x,c]) => b[a] === p && b[x] === p && b[c] === p);
+}
+
+function highlightWin(combo) {
+  const cells = document.querySelectorAll('.ttt-cell');
+  combo.forEach(i => cells[i].classList.add('win-cell'));
+}
+
+function setStatus(html) {
+  document.getElementById('tttStatus').innerHTML = html;
+}
+
+function updateScores() {
+  document.getElementById('scoreX').textContent = scores.X;
+  document.getElementById('scoreO').textContent = scores.O;
+  document.getElementById('scoreD').textContent = scores.D;
+}
+
+function tttReset() {
+  board = Array(9).fill(null);
+  currentPlayer = 'X';
+  gameOver = false;
+  renderBoard();
+  setStatus(`<span class="highlight-x">X</span>'s turn`);
+}
+
+function tttNewGame() {
+  scores = { X: 0, O: 0, D: 0 };
+  updateScores();
+  tttReset();
+}
+
+renderBoard();
+</script>
 </body>
 </html>
